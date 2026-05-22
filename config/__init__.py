@@ -201,6 +201,16 @@ class Configuration:
         # 尝试从项目根目录加载 settings.toml
         # 若未找到，则退化为默认值空字典
         root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # 优先加载 .env 文件中的环境变量
+        try:
+            from dotenv import load_dotenv
+            env_path = os.path.join(root_dir, ".env")
+            if os.path.exists(env_path):
+                load_dotenv(env_path)
+        except ImportError:
+            pass
+            
         toml_path = os.path.join(root_dir, "config", "settings.toml")
         
         self._raw_data = {}

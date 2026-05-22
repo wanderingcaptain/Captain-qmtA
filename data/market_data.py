@@ -310,17 +310,30 @@ class MarketData:
         """
         获取日 K 线。
         抛出 DataFetchError 区分于返回空 DataFrame。
+        使用 EastMoney 接口避免多线程下 PyMiniRacer C++ 崩溃。
         """
         import akshare as ak
-        sina_code = to_sina_code(code)
+        bare_code = strip_code_prefix(code)
         try:
-            df = ak.stock_zh_a_daily(sina_code, adjust=adjust)
+            df = ak.stock_zh_a_hist(symbol=bare_code, period="daily", adjust=adjust)
         except Exception as e:
             raise DataFetchError(f"获取 {code} 日线失败: {e}")
 
-        if df.empty or "date" not in df.columns:
+        if df.empty or "日期" not in df.columns:
             return pd.DataFrame()
 
+        df.rename(
+            columns={
+                "日期": "date",
+                "开盘": "open",
+                "收盘": "close",
+                "最高": "high",
+                "最低": "low",
+                "成交量": "volume",
+                "成交额": "amount",
+            },
+            inplace=True
+        )
         return df.tail(count).reset_index(drop=True)
 
     @retry(max_attempts=3)

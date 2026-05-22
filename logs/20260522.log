@@ -86,3 +86,121 @@
 18:04:17 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
 18:04:17 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
 18:04:17 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
+18:49:32 | INFO     | qmt_ths | ==================================================
+18:49:32 | INFO     | qmt_ths | Starting Captain Frontend Server...
+18:49:32 | INFO     | qmt_ths | Access the dashboard at: http://127.0.0.1:8000
+18:49:32 | INFO     | qmt_ths | ==================================================
+18:49:35 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:50:13 | WARNING  | qmt_ths.core.manager | 监控池文件不存在: data/watchlist.txt
+18:50:13 | INFO     | qmt_ths.core.intraday | 成功加载监控池，共 0 只股票
+18:50:13 | ERROR    | qmt_ths.core.intraday | 监控池为空，引擎终止启动
+18:50:24 | INFO     | qmt_ths.core.manager | 开始执行后台盘后选股任务...
+18:50:24 | INFO     | run_screening | ========== 盘后选股开始 (20260522) ==========
+18:50:24 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:50:24 | INFO     | run_screening | 获取全市场基础行情成功，共 5521 只股票
+18:50:24 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:50:25 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:50:25 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 4558 只股票进行量比检查...
+18:50:28 | WARNING  | qmt_ths.data.market | 获取 EM 量比分页 16 失败: HTTPSConnectionPool(host='push2.eastmoney.com', port=443): Max retries exceeded with url: /api/qt/clist/get?pn=16&pz=100&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m%3A0%2Bt%3A6%2Cm%3A0%2Bt%3A80%2Cm%3A1%2Bt%3A2%2Cm%3A1%2Bt%3A23%2Cm%3A0%2Bt%3A81%2Bs%3A2048&fields=f2%2Cf3%2Cf10%2Cf12%2Cf14 (Caused by ProxyError('Unable to connect to proxy', RemoteDisconnected('Remote end closed connection without response')))
+18:50:28 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 40 只
+18:50:28 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 22 只股票进行日线形态并发确认...
+18:52:13 | WARNING  | qmt_ths.risk.account | [账户风控] 连续亏损 2 天，仓位上限降至 50%
+18:52:13 | CRITICAL | qmt_ths.risk.account | [账户风控] 连续亏损 3 天，触发强制清仓！
+18:52:13 | WARNING  | qmt_ths.risk.account | [账户风控] 买入暂停 2 天，截止至 2026-05-24
+18:52:13 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:52:13 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:52:13 | INFO     | qmt_ths.core.intraday | 成功加载监控池，共 2 只股票
+18:52:13 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:52:13 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:52:13 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:52:13 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:52:13 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 1 只股票进行量比检查...
+18:52:13 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 1 只
+18:52:13 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 1 只股票进行日线形态并发确认...
+18:52:13 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
+18:52:13 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:52:13 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
+18:54:51 | INFO     | qmt_ths | ==================================================
+18:54:51 | INFO     | qmt_ths | Starting Captain Frontend Server...
+18:54:51 | INFO     | qmt_ths | Access the dashboard at: http://127.0.0.1:8000
+18:54:51 | INFO     | qmt_ths | ==================================================
+18:54:51 | INFO     | qmt_ths.data.market | 已启用 East Money push2 代理网关: 101.201.173.125
+18:55:22 | INFO     | qmt_ths.core.manager | 开始执行后台盘后选股任务...
+18:55:22 | INFO     | run_screening | ========== 盘后选股开始 (20260522) ==========
+18:55:22 | INFO     | qmt_ths.data.market | 已启用 East Money push2 代理网关: 101.201.173.125
+18:55:44 | WARNING  | qmt_ths.data.market | 获取行情分页 70/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:44 | INFO     | run_screening | 获取全市场基础行情成功，共 5521 只股票
+18:55:44 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:55:44 | WARNING  | qmt_ths.data.market | 获取行情分页 1/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:44 | WARNING  | qmt_ths.data.market | 获取行情分页 2/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:45 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:55:45 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 4558 只股票进行量比检查...
+18:55:45 | WARNING  | qmt_ths.data.market | 获取行情分页 4/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:45 | WARNING  | qmt_ths.data.market | 获取行情分页 5/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:46 | WARNING  | qmt_ths.data.market | 获取行情分页 6/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:46 | WARNING  | qmt_ths.data.market | 获取行情分页 8/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:46 | WARNING  | qmt_ths.data.market | 获取行情分页 10/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:46 | WARNING  | qmt_ths.data.market | 获取行情分页 7/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:46 | WARNING  | qmt_ths.data.market | 获取行情分页 8/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 9/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 10/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 11/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 12/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 13/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 14/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 15/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:47 | WARNING  | qmt_ths.data.market | 获取行情分页 14/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:48 | WARNING  | qmt_ths.data.market | 获取行情分页 16/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:48 | WARNING  | qmt_ths.data.market | 获取行情分页 15/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:48 | WARNING  | qmt_ths.data.market | 获取行情分页 16/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:48 | WARNING  | qmt_ths.data.market | 获取行情分页 18/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:48 | WARNING  | qmt_ths.data.market | 获取行情分页 19/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:49 | WARNING  | qmt_ths.data.market | 获取行情分页 22/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:50 | WARNING  | qmt_ths.data.market | 获取行情分页 23/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:50 | WARNING  | qmt_ths.data.market | 获取行情分页 28/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:51 | WARNING  | qmt_ths.data.market | 获取行情分页 24/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:51 | WARNING  | qmt_ths.data.market | 获取行情分页 25/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:51 | WARNING  | qmt_ths.data.market | 获取行情分页 31/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:51 | WARNING  | qmt_ths.data.market | 获取行情分页 36/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:51 | WARNING  | qmt_ths.data.market | 获取行情分页 37/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:51 | WARNING  | qmt_ths.data.market | 获取行情分页 38/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:51 | WARNING  | qmt_ths.data.market | 获取行情分页 30/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:52 | WARNING  | qmt_ths.data.market | 获取行情分页 32/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:52 | WARNING  | qmt_ths.data.market | 获取行情分页 34/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:52 | WARNING  | qmt_ths.data.market | 获取行情分页 40/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:52 | WARNING  | qmt_ths.data.market | 获取行情分页 38/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 39/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 41/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 47/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 48/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 43/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 49/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 44/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 45/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:53 | WARNING  | qmt_ths.data.market | 获取行情分页 50/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 52/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 53/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 55/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 48/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 57/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 49/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 58/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 50/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 59/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 60/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:54 | WARNING  | qmt_ths.data.market | 获取行情分页 51/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:55 | WARNING  | qmt_ths.data.market | 获取行情分页 61/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:55 | WARNING  | qmt_ths.data.market | 获取行情分页 52/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:55 | WARNING  | qmt_ths.data.market | 获取行情分页 62/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:55 | WARNING  | qmt_ths.data.market | 获取行情分页 53/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:55 | WARNING  | qmt_ths.data.market | 获取行情分页 54/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:55 | WARNING  | qmt_ths.data.market | 获取行情分页 63/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:55 | WARNING  | qmt_ths.data.market | 获取行情分页 56/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:56 | WARNING  | qmt_ths.data.market | 获取行情分页 58/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:56 | WARNING  | qmt_ths.data.market | 获取行情分页 66/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:56 | WARNING  | qmt_ths.data.market | 获取行情分页 67/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:56 | WARNING  | qmt_ths.data.market | 获取行情分页 61/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:56 | WARNING  | qmt_ths.data.market | 获取行情分页 62/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:56 | WARNING  | qmt_ths.data.market | 获取行情分页 63/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:57 | WARNING  | qmt_ths.data.market | 获取行情分页 67/70 失败: Expecting value: line 1 column 1 (char 0)
+18:55:57 | WARNING  | qmt_ths.data.market | 获取行情分页 69/70 失败: Expecting value: line 1 column 1 (char 0)
