@@ -1,0 +1,93 @@
+[system]
+# 数据与日志目录
+data_dir = "data"
+log_dir = "logs"
+log_level = "INFO"
+watchlist_file = "watchlist.txt"
+position_file = "data/portfolio.json"
+data_fetch_interval_seconds = 3
+
+[trading_time]
+# 交易时间段配置（字符串，稍后在代码中解析为 time）
+morning_open = "09:30:00"
+morning_close = "11:30:00"
+afternoon_open = "13:00:00"
+afternoon_close = "14:57:00"
+# 开盘熔断检测窗口
+circuit_breaker_start = "09:30:00"
+circuit_breaker_end = "09:40:00"
+# 买入窗口
+buy_window_1_start = "09:30:00"
+buy_window_1_end = "10:40:00"
+buy_window_2_start = "14:40:00"
+buy_window_2_end = "14:55:00"
+
+[macro]
+# 宏观情绪风控
+advancing_stocks_threshold = 3000
+circuit_breaker_advancing_warning = 3000
+circuit_breaker_advancing_below = 4000
+
+[screener]
+# 盘后选股器参数
+volume_ratio_threshold = 2.5
+limit_up_lookback_days = 15
+volume_surge_ma_period = 30
+volume_surge_multiple = 2.0
+upper_shadow_min_ratio = 2.0
+lower_shadow_max_ratio = 0.2
+log_interval = 20
+
+[momentum]
+# 一进二打板参数
+max_market_cap = 100_0000_0000  # 100亿
+limit_up_lookback_days = 10
+
+[buy]
+# 买入策略参数
+max_open_positions = 5
+vwap_band_percent = 0.005
+vwap_confirm_minutes = 3
+volume_lookback_minutes = 5
+volume_shrink_ratio = 0.5
+
+# 急拉冷却控制
+rapid_rally_lookback_minutes = 3
+rapid_rally_price_pct = 0.03
+early_session_baseline_minutes = 30
+rapid_rally_volume_multiple = 3.0
+cooling_period_minutes = 15
+
+[sell]
+# 卖出策略参数
+stop_loss_vwap_pct = 0.02
+take_profit_1_pct = 0.03
+take_profit_1_ratio = 0.5
+take_profit_2_pct = 0.05
+take_profit_2_ratio = 1.0
+
+resistance_vwap_band_pct = 0.01
+resistance_consecutive_bars = 3
+resistance_counter_limit = 2
+
+divergence_volume_ratio_threshold = 3.0
+divergence_gain_min_pct = 0.01
+divergence_gain_max_pct = 0.025
+divergence_duration_minutes = 5
+
+breakdown_check_time = "14:50:00"
+
+[risk]
+# 账户风控参数
+max_consecutive_loss_days = 2
+position_cap_after_loss = 0.5
+forced_liquidation_consecutive_days = 3
+buy_suspend_days = 2
+
+[notify]
+# 通知渠道设置 (填入对应 Webhook 地址即启用)
+wechat_webhook = ""
+dingtalk_webhook = ""
+telegram_bot_token = ""
+telegram_chat_id = ""
+rate_limit_minutes = 5

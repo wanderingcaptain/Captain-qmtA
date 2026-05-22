@@ -1,260 +1,244 @@
 """
-Nightly Screener — scans entire A-share universe after hours.
-Filters: limit-up pool, volume ratio surge, MA30 volume confirmation, fairy finger.
+盘后选股器 — 扫描全市场 A 股，筛选进入核心股票池的标的。
 
-Flow:
-  Phase 0: Get limit-up pool → all limit-up stocks are direct candidates
-  Phase 1: Get Sina spot data → filter out ST/科创板/北交所 stocks
-  Phase 2: Try EM volume ratios → mark high-ratio stocks as volume candidates
-  Phase 3: For candidates, fetch daily bars → MA30 confirmation + fairy finger
-
-ST stocks (名称含 ST/*ST), 科创板 (688xxx), 北交所 (8xxxxx/BJ) are excluded.
+变更记录：
+  v1.1  - 实现 BaseScreener 接口
+        - 复用 market_utils 的公共函数（去重）
+        - 引入 ThreadPoolExecutor 实现 Phase 3 日线并发拉取，大幅加速
+        - 补充完整的异常处理，修复静默吞噬异常的 Bug
+        - 替换 print 为 logger
 """
 
-from datetime import date, datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import date
 from typing import Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 
 from config import Config
 from data.market_data import MarketData
+from strategies.base import BaseScreener
+from utils.market_utils import is_excluded_stock, normalize_code, has_recent_limit_up
+from utils.exceptions import DataFetchError
+from utils.logger import get_logger
+
+logger = get_logger("strategies.screener")
 
 
-class DailyScreener:
+class DailyScreener(BaseScreener):
     """
-    Post-market stock screening engine.
-    Scans 5000+ A-share stocks and builds the core watchlist.
+    盘后选股引擎。
+    包含：涨停池、量比激增、仙人指路、日线均量突破 等形态筛选。
     """
 
     def __init__(self, market_data: MarketData):
         self.md = market_data
-        self._excluded_codes: Set[str] = set()
         self._stats: Dict[str, int] = {}
+        # 缓存每个股票的分类信息，供 run_screening.py 等外部脚本复用
+        self.categories: Dict[str, str] = {}
 
     # ------------------------------------------------------------------
-    # Exclusion filters
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _is_excluded(code: str, name: str) -> bool:
-        """Check if a stock should be excluded from screening."""
-        # ST stocks (ST, *ST)
-        if "ST" in name or "*ST" in name:
-            return True
-        # 科创板 (688xxx, 689xxx)
-        raw = code.replace("sh", "").replace("sz", "").replace("bj", "")
-        if raw.startswith("688") or raw.startswith("689"):
-            return True
-        # 北交所 (8xxxxx, bj prefix)
-        if code.startswith("bj") or raw.startswith("8"):
-            return True
-        return False
-
-    # ------------------------------------------------------------------
-    # Phase 0: Limit-up pool (fast batch)
+    # Phase 0: 涨停池
     # ------------------------------------------------------------------
     def _get_limit_up_candidates(self) -> Set[str]:
-        """
-        Get today's limit-up pool. All go directly into candidates.
-        """
+        """获取当日涨停池，自动加入候选。"""
         today_str = date.today().strftime("%Y%m%d")
+        valid = set()
         try:
             df = self.md.get_limit_up_pool(trade_date=today_str)
             if df.empty:
-                return set()
-            # Filter out excluded stocks from limit-up pool too
-            valid = set()
+                return valid
+
             for _, row in df.iterrows():
-                code = row["code"]
-                name = row["name"]
-                if self._is_excluded(code, name):
-                    self._excluded_codes.add(code)
+                code = str(row["code"])
+                name = str(row["name"])
+                if is_excluded_stock(code, name):
                     continue
                 valid.add(code)
+                self.categories[code] = "涨停板"
             return valid
-        except Exception as e:
-            print(f"  [Warn] Limit-up pool fetch failed: {e}")
-            return set()
+        except DataFetchError as e:
+            logger.warning(f"获取涨停池失败: {e}")
+            return valid
 
     # ------------------------------------------------------------------
-    # Phase 1: Spot-level pre-screening + exclusion (fast memory op)
+    # Phase 1: 基础行情过滤 (排除 ST/科创/北交)
     # ------------------------------------------------------------------
-    def _prepare_spot_index(self) -> pd.DataFrame:
-        """
-        Get Sina spot data, filter out excluded stocks.
-        Returns a DataFrame with code, name, price, volume, pct_chg.
-        """
-        spot = self.md._get_spot()
+    def _prepare_spot_index(self, spot_df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+        """从全市场行情中筛选出非排除股票。"""
+        if spot_df is not None:
+            spot = spot_df
+        else:
+            try:
+                spot = self.md.get_spot()
+            except DataFetchError as e:
+                logger.error(f"获取全市场行情失败: {e}")
+                return pd.DataFrame()
+
         if spot.empty:
             return spot
 
-        # Mark exclusions
+        # DataFrame column is "name" and "code"
         exclude_mask = spot.apply(
-            lambda r: self._is_excluded(r["code"], r["name"]), axis=1
+            lambda r: is_excluded_stock(str(r["code"]), str(r["name"])), axis=1
         )
-        self._excluded_codes.update(spot.loc[exclude_mask, "code"].tolist())
-
-        # Return non-excluded stocks only
         return spot[~exclude_mask].copy()
 
     # ------------------------------------------------------------------
-    # Phase 2: Volume ratio / activity pre-filter
+    # Phase 2: 量比预筛
     # ------------------------------------------------------------------
     def _get_volume_ratio_candidates(self, spot: pd.DataFrame) -> Set[str]:
-        """
-        Best-effort: fetch EM volume ratios.
-        If EM is unreachable, warn the user and return empty set.
-        """
-        try:
-            em = self.md._get_em_spot_volume_ratios()
-            if em.empty:
-                print("  [Warn] EM volume ratio API returned empty — skipping volume pre-filter")
-                return set()
-        except Exception as e:
-            print(f"  [Warn] EM volume ratio API unreachable — {e}")
-            print("  [Warn] Skipping volume ratio pre-filter (Phase 3 will still check daily bars)")
-            return set()
-
+        """基于 EM push2 获取全市场量比。"""
         candidates: Set[str] = set()
+        try:
+            em = self.md.get_volume_ratios()
+            if em.empty:
+                logger.warning("EM 量比 API 返回为空，跳过量比初筛")
+                return candidates
+        except Exception as e:
+            logger.warning(f"EM 量比获取异常: {e}，跳过该步过滤")
+            return candidates
+
+        threshold = Config.SCREENER.VOLUME_RATIO_THRESHOLD
         for _, row in em.iterrows():
-            em_code = row["code"]
+            code = str(row["code"])
             vol_ratio = row["volume_ratio"]
-            if vol_ratio is None or vol_ratio <= Config.SCREENER.VOLUME_RATIO_THRESHOLD:
+            if vol_ratio is None or vol_ratio <= threshold:
                 continue
-            match = spot[spot["code"].str.endswith(em_code)]
+            
+            # 从 spot 中确认代码存在（且未被排除）
+            match = spot[spot["code"].str.endswith(code)]
             if not match.empty:
-                candidates.add(str(match.iloc[0]["code"]))
+                bare_code = normalize_code(match.iloc[0]["code"])
+                candidates.add(bare_code)
+                
         return candidates
 
     # ------------------------------------------------------------------
-    # Phase 3: Daily bars checks (MA30 volume + fairy finger)
+    # Phase 3: 日线级别形态确认
     # ------------------------------------------------------------------
-    def _check_volume_surge(self, code: str) -> bool:
-        """Check if today's volume > 2× MA30 volume."""
-        bars = self.md.get_daily_bars(code, count=Config.SCREENER.VOLUME_SURGE_MA_PERIOD + 5)
-        if bars is None or len(bars) < Config.SCREENER.VOLUME_SURGE_MA_PERIOD + 1:
-            return False
-
-        today_vol = bars.iloc[-1]["volume"]
-        ma_vol = bars.iloc[-(Config.SCREENER.VOLUME_SURGE_MA_PERIOD + 1): -1]["volume"].mean()
-        if ma_vol <= 0:
-            return False
-        return today_vol >= ma_vol * Config.SCREENER.VOLUME_SURGE_MULTIPLE
-
-    def _check_fairy_finger(self, code: str) -> bool:
+    def _check_daily_patterns(self, code: str) -> Optional[str]:
         """
-        仙人指路: upper shadow > 2× body, lower shadow < 0.2× body, volume up.
+        拉取单只股票的日线，检查三种模式：
+        1. 近期涨停
+        2. 日均量突破（今天 > 2*MA30）
+        3. 仙人指路形态
+        返回匹配的模式名称（"近期涨停_量能突破"、"量能突破"、"仙人指路"），若全不匹配返回 None。
         """
-        bars = self.md.get_daily_bars(code, count=10)
-        if bars is None or len(bars) < 3:
-            return False
+        try:
+            # 统一拉 35 天日线以满足 MA30 计算需求
+            bars = self.md.get_daily_bars(code, count=35)
+        except DataFetchError as e:
+            logger.debug(f"{code} 日线获取失败: {e}")
+            return None
+
+        if bars.empty or len(bars) < 3:
+            return None
 
         today = bars.iloc[-1]
         yesterday = bars.iloc[-2]
 
+        # 模式 1: 近期涨停（看最近 N 天）
+        lookback = min(len(bars), Config.SCREENER.LIMIT_UP_LOOKBACK_DAYS + 1)
+        recent_bars = bars.tail(lookback).reset_index(drop=True)
+        if has_recent_limit_up(recent_bars):
+            return "近期涨停_量能突破"
+
+        # 模式 2: 量能突破
+        if len(bars) >= Config.SCREENER.VOLUME_SURGE_MA_PERIOD + 1:
+            period = Config.SCREENER.VOLUME_SURGE_MA_PERIOD
+            ma_vol = bars.iloc[-(period + 1): -1]["volume"].mean()
+            if ma_vol > 0 and today["volume"] >= ma_vol * Config.SCREENER.VOLUME_SURGE_MULTIPLE:
+                return "量能突破"
+
+        # 模式 3: 仙人指路
         body = abs(today["open"] - today["close"])
-        if body == 0:
-            return False
+        if body > 0:
+            upper_shadow = today["high"] - max(today["open"], today["close"])
+            lower_shadow = min(today["open"], today["close"]) - today["low"]
+            if (
+                upper_shadow > Config.SCREENER.UPPER_SHADOW_MIN_RATIO * body
+                and lower_shadow < Config.SCREENER.LOWER_SHADOW_MAX_RATIO * body
+                and today["volume"] > yesterday["volume"]
+            ):
+                return "仙人指路"
 
-        upper_shadow = today["high"] - max(today["open"], today["close"])
-        lower_shadow = min(today["open"], today["close"]) - today["low"]
-
-        if upper_shadow <= Config.SCREENER.UPPER_SHADOW_MIN_RATIO * body:
-            return False
-        if lower_shadow >= Config.SCREENER.LOWER_SHADOW_MAX_RATIO * body:
-            return False
-        if today["volume"] <= yesterday["volume"]:
-            return False
-        return True
-
-    def _check_recent_limit_up(self, code: str) -> bool:
-        """Check if stock had a limit-up in the past N days (via daily bars)."""
-        bars = self.md.get_daily_bars(code, count=Config.SCREENER.LIMIT_UP_LOOKBACK_DAYS)
-        if bars is None or len(bars) < 2:
-            return False
-        for i in range(1, len(bars)):
-            if bars.iloc[i]["close"] >= bars.iloc[i - 1]["close"] * 1.095:
-                return True
-        return False
+        return None
 
     # ------------------------------------------------------------------
-    # Public API
+    # 公共 API
     # ------------------------------------------------------------------
-    def run(self) -> List[str]:
-        """
-        Run full screening pipeline.
-        Returns list of candidate stock codes (no exchange prefix).
-        """
-        self._excluded_codes = set()
-        self._stats = {"limit_up": 0, "volume_ratio": 0, "daily_confirmed": 0, "fairy_finger": 0, "errors": 0}
+    def run(self, spot_df: Optional[pd.DataFrame] = None) -> List[str]:
+        """执行完整筛选流水线，返回候选代码。"""
+        self._stats = {
+            "limit_up": 0, "volume_ratio": 0, "daily_confirmed": 0,
+            "fairy_finger": 0, "errors": 0
+        }
+        self.categories.clear()
 
-        print(f"  [Phase 0] Fetching limit-up pool...")
-        limit_up_set = self._get_limit_up_candidates()
-        self._stats["limit_up"] = len(limit_up_set)
-        candidates: Set[str] = set(limit_up_set)
+        # [Phase 0] 涨停池（直接入选）
+        logger.info("[Phase 0] 获取涨停池...")
+        candidates = self._get_limit_up_candidates()
+        self._stats["limit_up"] = len(candidates)
 
-        print(f"  [Phase 1] Loading spot data ({len(limit_up_set)} limit-up + rest)...")
-        spot = self._prepare_spot_index()
-        remaining = len(spot) - len(limit_up_set)
-        if remaining <= 0:
-            print(f"  All {len(spot)} non-excluded stocks already in limit-up pool.")
-            return sorted(candidates)
+        # [Phase 1] 现货筛选
+        logger.info("[Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...")
+        spot = self._prepare_spot_index(spot_df)
+        if spot.empty:
+            logger.error("全市场行情为空，无法继续筛选")
+            return sorted(list(candidates))
+            
+        remaining_count = len(spot) - len(candidates)
+        if remaining_count <= 0:
+            return sorted(list(candidates))
 
-        print(f"  [Phase 2] Checking volume ratios for {remaining} stocks...")
+        # [Phase 2] 量比预筛
+        logger.info(f"[Phase 2] 对 {remaining_count} 只股票进行量比检查...")
         vol_candidates = self._get_volume_ratio_candidates(spot)
         self._stats["volume_ratio"] = len(vol_candidates)
-        print(f"    Volume ratio > {Config.SCREENER.VOLUME_RATIO_THRESHOLD}: {len(vol_candidates)}")
+        logger.info(f"  > 量比达标: {len(vol_candidates)} 只")
 
-        # Remove codes already in candidates (limit-up)
-        vol_candidates -= candidates
+        # 剔除已在涨停池中的
+        to_check = vol_candidates - candidates
+        logger.info(f"[Phase 3] 对 {len(to_check)} 只股票进行日线形态并发确认...")
 
-        # Daily bars checks: only run for volume_ratio candidates + random sample
-        # to avoid 5000 HTTP requests
-        to_check: Set[str] = vol_candidates.copy()
-        print(f"  [Phase 3] Daily bars checks for {len(to_check)} stocks...")
-
+        # [Phase 3] 并发日线检查
+        # 优化点：使用线程池并发，限制并发数为 15 以防止 Sina 封 IP
+        futures_map = {}
         processed = 0
-        start_time = datetime.now()
-        for code_sina in to_check:
-            try:
-                # get_daily_bars works with both prefixed and unprefixed codes
-                limit_up_ok = self._check_recent_limit_up(code_sina)
-                if limit_up_ok:
-                    candidates.add(self._strip_prefix(code_sina))
-                    self._stats["daily_confirmed"] += 1
-                    continue
+        
+        with ThreadPoolExecutor(max_workers=15) as executor:
+            for code in to_check:
+                fut = executor.submit(self._check_daily_patterns, code)
+                futures_map[fut] = code
 
-                surge_ok = self._check_volume_surge(code_sina)
-                if surge_ok:
-                    candidates.add(self._strip_prefix(code_sina))
-                    self._stats["daily_confirmed"] += 1
-                    continue
+            for fut in as_completed(futures_map):
+                code = futures_map[fut]
+                processed += 1
+                try:
+                    category = fut.result()
+                    if category:
+                        candidates.add(code)
+                        self.categories[code] = category
+                        if category == "仙人指路":
+                            self._stats["fairy_finger"] += 1
+                        else:
+                            self._stats["daily_confirmed"] += 1
+                except Exception as e:
+                    self._stats["errors"] += 1
+                    logger.debug(f"{code} 并发检查异常: {e}")
 
-                finger_ok = self._check_fairy_finger(code_sina)
-                if finger_ok:
-                    candidates.add(self._strip_prefix(code_sina))
-                    self._stats["fairy_finger"] += 1
+                if processed % Config.SCREENER.LOG_INTERVAL == 0:
+                    logger.info(
+                        f"  > 进度: {processed}/{len(to_check)} "
+                        f"| 累计选中: {len(candidates)} | 错误: {self._stats['errors']}"
+                    )
 
-            except Exception as e:
-                self._stats["errors"] += 1
+        logger.info(
+            f"选股完成: 共 {len(candidates)} 只候选 "
+            f"(涨停={self._stats['limit_up']}, "
+            f"日线确认={self._stats['daily_confirmed']}, "
+            f"仙人指路={self._stats['fairy_finger']})"
+        )
 
-            processed += 1
-            if processed % Config.SCREENER.LOG_INTERVAL == 0:
-                elapsed = (datetime.now() - start_time).total_seconds()
-                rate = processed / elapsed if elapsed > 0 else 0
-                print(f"    Progress: {processed}/{len(to_check)} ({rate:.1f}/s) | "
-                      f"candidates: {len(candidates)} | errors: {self._stats['errors']}")
-
-        elapsed = (datetime.now() - start_time).total_seconds()
-        print(f"  Done: {len(candidates)} candidates in {elapsed:.0f}s "
-              f"(limit_up={self._stats['limit_up']}, confirmed={self._stats['daily_confirmed']}, "
-              f"fairy={self._stats['fairy_finger']}, errors={self._stats['errors']})")
-
-        return sorted(candidates)
-
-    @staticmethod
-    def _strip_prefix(code: str) -> str:
-        """Remove exchange prefix from code (sh600519 → 600519)."""
-        for prefix in ("sh", "sz", "bj"):
-            if code.startswith(prefix):
-                return code[len(prefix):]
-        return code
+        return sorted(list(candidates))

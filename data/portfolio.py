@@ -68,8 +68,8 @@ class Portfolio:
     Manages positions, account balance, and persistence.
     """
 
-    def __init__(self, filepath: str = SystemConfig.POSITION_FILE):
-        self.filepath = filepath
+    def __init__(self, filepath: Optional[str] = None):
+        self.filepath = filepath or SystemConfig.POSITION_FILE
         self.positions: Dict[str, PositionState] = {}  # code → PositionState
         self.cash: float = 1_000_000.0  # initial capital
         self.account_history: List[AccountSnapshot] = []

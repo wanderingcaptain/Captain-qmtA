@@ -1,6 +1,12 @@
 """
-Buy Logic — Intraday buy signal detection.
-Three-layer filter: macro sentiment → time window → micro VWAP pattern.
+买入逻辑 — 盘中买入信号检测。
+三层过滤：宏观情绪 → 时间窗口 → VWAP 微观形态。
+
+变更记录：
+  v1.1  - 修复 Bug #4：_check_rapid_rally 触发冷却后，_check_vwap_support 应返回 False
+          原代码在设置冷却后仍然 return True，导致急拉信号被执行。
+        - _cooling_map 改名含义更清晰（存储冷却开始时间）
+        - 使用 get_logger 替代 print
 """
 
 from datetime import datetime, time
@@ -10,37 +16,43 @@ import pandas as pd
 
 from config import Config
 from data.market_data import MarketData
+from utils.logger import get_logger
+
+logger = get_logger("strategies.buy")
 
 
 class BuySignal:
     """
-    Evaluates buy signals for stocks in the core watchlist.
-    All three filters must pass before a buy is triggered.
+    评估自选股的买入信号。
+    三个过滤层全部通过才触发买入。
     """
 
     def __init__(self, market_data: MarketData):
         self.md = market_data
-        self._cooling_map: dict = {}  # code → cooling_until (datetime)
+        # code → 冷却开始时间（datetime）
+        self._cooling_start: dict = {}
 
     # ------------------------------------------------------------------
-    # Layer 1: Macro Sentiment Filter
+    # Layer 1: 宏观情绪
     # ------------------------------------------------------------------
     def _check_macro_sentiment(self) -> bool:
-        """
-        Check if advancing stocks >= threshold.
-        If not, block all buy signals.
-        """
+        """上涨家数 >= 阈值才允许买入。"""
         advancing, declining, flat = self.md.get_market_advancing_declining()
-        return advancing >= Config.MACRO.ADVANCING_STOCKS_THRESHOLD
+        ok = advancing >= Config.MACRO.ADVANCING_STOCKS_THRESHOLD
+        if not ok:
+            logger.debug(
+                f"[宏观过滤] 上涨家数 {advancing} < {Config.MACRO.ADVANCING_STOCKS_THRESHOLD}"
+            )
+        return ok
 
     # ------------------------------------------------------------------
-    # Layer 2: Time Window Filter
+    # Layer 2: 时间窗口
     # ------------------------------------------------------------------
     @staticmethod
     def _check_time_window() -> bool:
         """
-        Buy only allowed during:
-         09:30 < T < 10:40  OR  14:40 < T < 14:55
+        允许买入的时间窗口：
+          09:30–10:40  OR  14:40–14:55
         """
         now = datetime.now().time()
         w1s = Config.TRADING_TIME.BUY_WINDOW_1_START
@@ -50,17 +62,19 @@ class BuySignal:
         return (w1s <= now <= w1e) or (w2s <= now <= w2e)
 
     # ------------------------------------------------------------------
-    # Layer 3: VWAP Support Pattern (Micro)
+    # Layer 3: VWAP 支撑形态（微观）
     # ------------------------------------------------------------------
     def _check_vwap_support(self, code: str) -> bool:
         """
-        VWAP support pattern:
-        1. Low of minute T is within ±0.5% of VWAP
-        2. Next 3-minute closes all above VWAP
-        3. Volume at minute T < 50% of past 5-min avg volume (缩量)
-        4. Not in a cooling period (急拉不买)
+        VWAP 支撑形态：
+        1. T 分钟低点在 VWAP ±0.5% 区间内
+        2. 后续 N 分钟收盘均站稳 VWAP
+        3. T 分钟成交量 < 前 5 分钟均量的 50%（缩量）
+        4. 不在急拉冷却期内
+
+        修复 Bug #4：先检测急拉并更新冷却，然后返回 False（而非原来
+        在设置冷却后仍 return True）。
         """
-        # Reject if in cooling period
         if self._in_cooling(code):
             return False
 
@@ -69,20 +83,22 @@ class BuySignal:
             return False
 
         vwap = self.md.get_vwap(code)
+        if vwap <= 0:
+            return False
+
         vwap_lower = vwap * (1 - Config.BUY.VWAP_BAND_PERCENT)
         vwap_upper = vwap * (1 + Config.BUY.VWAP_BAND_PERCENT)
+        conf = Config.BUY.VWAP_CONFIRM_MINUTES
 
-        # Iterate from latest bar backward to find support touch
         for i in range(len(bars) - 1, max(len(bars) - 20, 0), -1):
             t_bar = bars.iloc[i]
             low_t = t_bar["low"]
 
-            # Condition 1: low touches VWAP band
+            # 条件 1：低点触 VWAP 带
             if not (vwap_lower <= low_t <= vwap_upper):
                 continue
 
-            # Condition 2: next N minutes close above VWAP
-            conf = Config.BUY.VWAP_CONFIRM_MINUTES
+            # 条件 2：后续 N 分钟收盘站稳 VWAP
             if i + conf >= len(bars):
                 continue
             holds = all(
@@ -92,65 +108,84 @@ class BuySignal:
             if not holds:
                 continue
 
-            # Condition 3: volume shrinkage
+            # 条件 3：缩量
             vol_t = t_bar["volume"]
-            avg_vol = bars.iloc[i - Config.BUY.VOLUME_LOOKBACK_MINUTES : i]["volume"].mean()
+            avg_vol = bars.iloc[
+                max(0, i - Config.BUY.VOLUME_LOOKBACK_MINUTES): i
+            ]["volume"].mean()
             if avg_vol > 0 and vol_t / avg_vol >= Config.BUY.VOLUME_SHRINK_RATIO:
-                continue  # not enough shrinkage
+                continue
 
-            # Condition 4: check for rapid rally (急拉)
-            self._check_rapid_rally(code, bars, i)
+            # 条件 4（修复）：检测急拉；如果触发冷却则本次不买
+            if self._detect_rapid_rally(code, bars, i):
+                logger.info(f"[急拉冷却] {code} 触发冷却，跳过买入")
+                return False  # 修复：设置冷却后不再继续，直接返回 False
 
+            logger.info(
+                f"[VWAP支撑] {code} 触发 @ bar[{i}] "
+                f"low={low_t:.2f} vwap={vwap:.2f}"
+            )
             return True
 
         return False
 
     # ------------------------------------------------------------------
-    # Rapid Rally Cool-down (急拉不买)
+    # 急拉冷却（急拉不买）
     # ------------------------------------------------------------------
-    def _check_rapid_rally(self, code: str, bars: pd.DataFrame, current_idx: int):
+    def _detect_rapid_rally(self, code: str, bars: pd.DataFrame, current_idx: int) -> bool:
         """
-        If price surged > 3% in past 3 min with volume > 3× early avg,
-        set a 10-min cooling period.
+        检测是否发生急拉（3分钟涨 >3% 且量 >3× 早盘均量）。
+        若是，设置冷却期并返回 True。
         """
-        if current_idx < Config.BUY.RAPID_RALLY_LOOKBACK_MINUTES:
-            return
+        lb = Config.BUY.RAPID_RALLY_LOOKBACK_MINUTES
+        if current_idx < lb:
+            return False
 
-        near = bars.iloc[current_idx - Config.BUY.RAPID_RALLY_LOOKBACK_MINUTES : current_idx + 1]
-        price_change = (near.iloc[-1]["close"] - near.iloc[0]["open"]) / near.iloc[0]["open"]
+        near = bars.iloc[current_idx - lb: current_idx + 1]
+        open_price = near.iloc[0]["open"]
+        if open_price <= 0:
+            return False
 
+        price_change = (near.iloc[-1]["close"] - open_price) / open_price
         if price_change < Config.BUY.RAPID_RALLY_PRICE_PCT:
-            return
+            return False
 
-        # Volume check: compare to early-session average
-        all_bars = bars
-        if len(all_bars) < Config.BUY.EARLY_SESSION_BASELINE_MINUTES:
-            return
-        early_bars = all_bars.head(Config.BUY.EARLY_SESSION_BASELINE_MINUTES)
-        early_avg_vol = early_bars["volume"].mean() if not early_bars.empty else 1
+        # 量能检查
+        baseline_n = Config.BUY.EARLY_SESSION_BASELINE_MINUTES
+        if len(bars) < baseline_n:
+            return False
+        early_avg_vol = bars.head(baseline_n)["volume"].mean()
+        if early_avg_vol <= 0:
+            return False
+
         surge_vol = near["volume"].mean()
-
         if surge_vol > early_avg_vol * Config.BUY.RAPID_RALLY_VOLUME_MULTIPLE:
-            self._cooling_map[code] = datetime.now()
+            self._cooling_start[code] = datetime.now()
+            logger.debug(
+                f"[急拉检测] {code} 涨幅={price_change:.1%} "
+                f"量={surge_vol:.0f} vs 基准={early_avg_vol:.0f}"
+            )
+            return True
+        return False
 
     def _in_cooling(self, code: str) -> bool:
-        """Check if stock is in cooling period."""
-        until = self._cooling_map.get(code)
-        if until is None:
+        """检查股票是否仍在急拉冷却期内。"""
+        start = self._cooling_start.get(code)
+        if start is None:
             return False
-        elapsed = (datetime.now() - until).total_seconds()
+        elapsed = (datetime.now() - start).total_seconds()
         if elapsed > Config.BUY.COOLING_PERIOD_MINUTES * 60:
-            del self._cooling_map[code]
+            del self._cooling_start[code]
             return False
         return True
 
     # ------------------------------------------------------------------
-    # Public API
+    # 公共 API
     # ------------------------------------------------------------------
     def evaluate(self, code: str) -> bool:
         """
-        Full buy signal pipeline: macro → time → micro.
-        All must pass. Returns True if conditions to buy are met.
+        完整买入信号流水线：宏观 → 时间 → 微观。
+        全部通过返回 True。
         """
         if not self._check_macro_sentiment():
             return False

@@ -1,0 +1,88 @@
+18:02:21 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:32 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:33 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:33 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:34 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:35 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:35 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:35 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:35 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:35 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:02:35 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:02:35 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 1 只股票进行量比检查...
+18:02:35 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 1 只
+18:02:35 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 1 只股票进行日线形态并发确认...
+18:02:35 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
+18:02:35 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:02:35 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
+18:03:12 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:12 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:12 | INFO     | qmt_ths.core.intraday | 成功加载监控池，共 2 只股票
+18:03:12 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:13 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:13 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:03:13 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:03:13 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 1 只股票进行量比检查...
+18:03:13 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 1 只
+18:03:13 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 1 只股票进行日线形态并发确认...
+18:03:13 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
+18:03:13 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:13 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
+18:03:28 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:28 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:28 | INFO     | qmt_ths.core.intraday | 成功加载监控池，共 2 只股票
+18:03:28 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:28 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:28 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:03:28 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:03:28 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 1 只股票进行量比检查...
+18:03:28 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 1 只
+18:03:28 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 1 只股票进行日线形态并发确认...
+18:03:28 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
+18:03:28 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:28 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
+18:03:46 | WARNING  | qmt_ths.risk.account | [账户风控] 连续亏损 2 天，仓位上限降至 50%
+18:03:46 | CRITICAL | qmt_ths.risk.account | [账户风控] 连续亏损 3 天，触发强制清仓！
+18:03:46 | WARNING  | qmt_ths.risk.account | [账户风控] 买入暂停 2 天，截止至 2026-05-24
+18:03:46 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:46 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:46 | INFO     | qmt_ths.core.intraday | 成功加载监控池，共 2 只股票
+18:03:46 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:46 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:46 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:03:46 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:03:46 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 1 只股票进行量比检查...
+18:03:46 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 1 只
+18:03:46 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 1 只股票进行日线形态并发确认...
+18:03:46 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
+18:03:46 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:03:46 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
+18:04:01 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:01 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:01 | INFO     | qmt_ths.core.intraday | 成功加载监控池，共 2 只股票
+18:04:01 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:01 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:01 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:04:01 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:04:01 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 1 只股票进行量比检查...
+18:04:01 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 1 只
+18:04:01 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 1 只股票进行日线形态并发确认...
+18:04:01 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
+18:04:01 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:01 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
+18:04:17 | WARNING  | qmt_ths.risk.account | [账户风控] 连续亏损 2 天，仓位上限降至 50%
+18:04:17 | CRITICAL | qmt_ths.risk.account | [账户风控] 连续亏损 3 天，触发强制清仓！
+18:04:17 | WARNING  | qmt_ths.risk.account | [账户风控] 买入暂停 2 天，截止至 2026-05-24
+18:04:17 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:17 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:17 | INFO     | qmt_ths.core.intraday | 成功加载监控池，共 2 只股票
+18:04:17 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:17 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:17 | INFO     | qmt_ths.strategies.screener | [Phase 0] 获取涨停池...
+18:04:17 | INFO     | qmt_ths.strategies.screener | [Phase 1] 准备全市场数据，过滤 ST/科创板/北交所...
+18:04:17 | INFO     | qmt_ths.strategies.screener | [Phase 2] 对 1 只股票进行量比检查...
+18:04:17 | INFO     | qmt_ths.strategies.screener |   > 量比达标: 1 只
+18:04:17 | INFO     | qmt_ths.strategies.screener | [Phase 3] 对 1 只股票进行日线形态并发确认...
+18:04:17 | INFO     | qmt_ths.strategies.screener | 选股完成: 共 2 只候选 (涨停=1, 日线确认=1, 仙人指路=0)
+18:04:17 | WARNING  | qmt_ths.data.market | 未配置代理环境变量 (QMT_PROXY_HOST / QMT_PROXY_TOKEN)。量比数据接口可能无法访问。
+18:04:17 | INFO     | qmt_ths.strategies.momentum | 打板策略筛选完成：输入 1 只，通过 1 只。拦截原因：市值超标=0, K线不符=0, 异常=0
